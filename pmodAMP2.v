@@ -6,13 +6,13 @@
  * 
  * Outputs: JC[3:0]         GPIO pins from PmodKYPD input (top row only, pins 1-4. pins 5-6 are VCC/GND)
  */
- module pmodAMP2 (
+module pmodAMP2 (
     input ain,
     output reg JC[3:0]
- );
+);
 
- // TODO: @ElizaldeJoseCS
+// TODO: @ElizaldeJoseCS
 
- // NOTE: might be as simple as "assign JC[x] = ain;" not really sure
+// NOTE: might be as simple as "assign JC[x] = ain;" not really sure
 
- endmodule
+endmodule
