@@ -6,7 +6,8 @@
  *          freq[XXXXX:0][15:0]     frequency (Hz) / pitch / note that each of the 16 keypad buttons represent. supplied by configuration file
  *          keypad[15:0]    0 = button off, 1 = button on for each button on the keypad
  *          clk_metronome   square wave representing current metronome. change in square wave = one metronome pulse
- *          volume[3:0]     unsigned BCD, current state of volume [0,15]. 0 = no volume / muted, 15 = maximum volume
+ *          volume[3:0]     unsigned BCD, current state of volume [0,16]. 1 = minimum volume, 16 = maximum volume
+ *          muted           whether or not sound is expressed, 0 = volume > 1, 1 = muted / no volume / volume = 0
  *
  * Outputs: ain             analog signal to be sent to pmodAMP2 (e.g. the "sound wave")
  */
@@ -16,6 +17,7 @@
     input [15:0] keypad,
     input clk_metronome,
     input [3:0] volume,
+    input muted,
     output reg ain
  );
 
