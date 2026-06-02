@@ -22,13 +22,24 @@
     input btnR,
     input btnU,
     input btnD,
-    input [7:0] JA,
+    inout [7:0] JA,
     output [15:0] led,
     output [3:0] JC,
     output [6:0] seg,
-    output [2:0] an,
+    output [2:0] an
  );
 
- // TODO
+    wire clk_fast; // 500 Hz clock for debouncing buttons/switches
+
+    clock_divider clk_div (
+        .master_clk(master_clk),
+        .clk_fast(clk_fast)
+    );
+
+    pmodKYPD keypad (
+        .clk_fast(clk_fast),
+        .JA(JA),
+        .btnKYPD(led)
+    );
 
  endmodule
