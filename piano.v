@@ -26,9 +26,24 @@
     output [15:0] led,
     output [3:0] JC,
     output [6:0] seg,
-    output [2:0] an,
+    output [2:0] an
  );
 
- // TODO
+   pmodAMP2 amp (
+        .i_clk(master_clk),
+        .i_sw({btnL, btnR, btnU, btnD}),
 
+        .o_audio(JC[0]),
+        .o_gain(JC[1]),
+        .o_shutdown_n(JC[2])
+    );
+
+
+   reg [24:0] debug_div;
+   always @(posedge master_clk) begin
+      debug_div <= debug_div + 1'b1;
+   end
+
+   assign led[0] = JC[0] ^ debug_div[24];
+   
  endmodule
