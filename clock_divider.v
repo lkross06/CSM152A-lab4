@@ -12,6 +12,18 @@ module clock_divider(
     output reg clk_fast, // 500 Hz
 );
 
-// TODO
+    // Define counters here (size them based on terminal counts)
+    reg [19:0] count_fast;
+
+    // activate on the positive edge of the master clock or when reset is pressed
+    always @(posedge master_clk) begin
+        // Same logic for Fast Clock (500 Hz)
+        if (count_fast == 19_999) begin
+            count_fast <= 0;
+            clk_fast <= ~clk_fast;
+        end else begin
+            count_fast <= count_fast + 1;
+        end
+    end
 
 endmodule

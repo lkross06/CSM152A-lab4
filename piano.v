@@ -39,11 +39,4 @@
     );
 
 
-   reg [24:0] debug_div;
-   always @(posedge master_clk) begin
-      debug_div <= debug_div + 1'b1;
-   end
-
-   assign led[0] = JC[0] ^ debug_div[24];
-   
  endmodule
