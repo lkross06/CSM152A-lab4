@@ -30,25 +30,61 @@
  );
 
     wire clk_fast; // 500 Hz clock for debouncing buttons/switches
+    wire [15:0] btnKYPD;
+
+    wire mode;
+    wire volume_dec;
+    wire volume_inc;
+    wire metronome_inc;
+    wire metronome_dec;
+    wire [15:0] keypad;
+
+    wire [4:0] vol;
+    wire muted;
 
     clock_divider clk_div (
         .master_clk(master_clk),
         .clk_fast(clk_fast)
     );
 
-    pmodKYPD keypad (
+    pmodKYPD kypd (
         .clk_fast(clk_fast),
         .JA(JA),
-        .btnKYPD(led)
+        .btnKYPD(btnKYPD)
     );
-    
-   pmodAMP2 amp (
-        .i_clk(master_clk),
-        .i_sw({btnL, btnR, btnU, btnD}),
 
-        .o_audio(JC[0]),
-        .o_gain(JC[1]),
-        .o_shutdown_n(JC[2])
+    clean_inputs ci (
+        .clk_fast(clk_fast),
+        .sw0(sw),
+        .btnL(btnL),
+        .btnR(btnR),
+        .btnU(btnU),
+        .btnD(btnD),
+        .btnKYPD(btnKYPD),
+        .mode(mode),
+        .volume_inc(volume_inc),
+        .volume_dec(volume_dec),
+        .metronome_inc(metronome_inc),
+        .metronome_dec(metronome_dec),
+        .keypad(keypad)
+    );
+
+//    pmodAMP2 amp (
+//         .i_clk(master_clk),
+//         .i_sw({btnL, btnR, btnU, btnD}),
+
+//         .o_audio(JC[0]),
+//         .o_gain(JC[1]),
+//         .o_shutdown_n(JC[2])
+//     );
+
+    volume vol_logic (
+        .clk(master_clk),
+        .volume_inc(volume_inc),
+        .volume_dec(volume_dec),
+        .volume(vol),
+        .muted(muted),
+        .led(led) //constraint file variable
     );
 
 

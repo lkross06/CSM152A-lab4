@@ -70,7 +70,7 @@ module clean_inputs(
         if (shift_R == 4'b1111)   db_R <= 1'b1; else if (shift_R == 4'b0000)   db_R <= 1'b0;
         if (shift_U == 4'b1111)   db_U <= 1'b1; else if (shift_U == 4'b0000)   db_U <= 1'b0;
         if (shift_D == 4'b1111)   db_D <= 1'b1; else if (shift_D == 4'b0000)   db_D <= 1'b0;
-        if (shift_sw0 == 4'b1111) db_sw0 <= 1'b1; else if (shift_sw0 == 4'b0000) db_sw0 <= 1'b0
+        if (shift_sw0 == 4'b1111) db_sw0 <= 1'b1; else if (shift_sw0 == 4'b0000) db_sw0 <= 1'b0;
     
         // Update outputs based on debounced button states
         volume_dec    <= db_L;
