@@ -41,5 +41,15 @@
         .JA(JA),
         .btnKYPD(led)
     );
+    
+   pmodAMP2 amp (
+        .i_clk(master_clk),
+        .i_sw({btnL, btnR, btnU, btnD}),
+
+        .o_audio(JC[0]),
+        .o_gain(JC[1]),
+        .o_shutdown_n(JC[2])
+    );
+
 
  endmodule
