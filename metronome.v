@@ -16,12 +16,67 @@ module metronome(
     input clk_fast,
     input metronome_inc,
     input metronome_dec,
-    input delta_bpm[3:0],
+    input [3:0] delta_bpm,        
     input mode,
-    output reg bpm[7:0],
+    output reg [7:0] bpm,         
     output reg clk_metronome
 );
 
-// TODO
+    // Default configuration, the first time mode is switched bpm = 120
+    initial begin
+        bpm = 8'd120;             
+        clk_metronome = 1'b0;
+    end
+
+    // bpm increment logic (boundaries [1, 255])
+    // bpm caps at 255 and at 1 no overflow allowed
+    always @(posedge clk_fast) begin
+        if (mode == 1'b1) begin   // Changes only allowed when in metronome mode
+            if (metronome_inc) begin
+                // Check for addition overflow
+                if ((8'd255 - bpm) < delta_bpm) begin
+                    bpm <= 8'd255; // Cap at max
+                end else begin
+                    bpm <= bpm + delta_bpm;
+                end
+            end else if (metronome_dec) begin
+                // Check for subtraction overflow
+                if ((bpm - 8'd1) < delta_bpm) begin
+                    bpm <= 8'd1;   // Cap at min
+                end else begin
+                    bpm <= bpm - delta_bpm;
+                end
+            end
+        end
+    end
+
+    // Clock cycles per minute = 500 Hz * 60 seconds = 30,000 cycles.
+    // Total cycles for one beat = 30,000 / BPM.
+    
+    reg [15:0] cycle_counter = 16'b0;
+    wire [15:0] target_cycles;
+    
+    assign target_cycles = (16'd30000 / bpm);
+
+    always @(posedge clk_fast) begin
+        if (mode == 1'b0) begin
+            cycle_counter <= 16'b0;
+            clk_metronome <= 1'b0;
+        end else begin
+            if (cycle_counter >= (target_cycles - 1'b1)) begin
+                cycle_counter <= 16'b0;
+            end else begin
+                cycle_counter <= cycle_counter + 1'b1;
+            end
+
+            // Generates a quick ~40ms tone burst (20 clk_fast cycles) right 
+            // at the start of each metronome interval. 
+            if (cycle_counter < 16'd20) begin
+                clk_metronome <= ~clk_metronome; 
+            end else begin
+                clk_metronome <= 1'b0; // quiet
+            end
+        end
+    end
 
 endmodule
