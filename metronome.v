@@ -22,6 +22,10 @@ module metronome(
     output reg clk_metronome
 );
 
+    //only sample once when the button is pressed, then wait for it to be released
+    reg inc_b = 1'b0;
+    reg dec_b = 1'b0;
+
     // Default configuration, the first time mode is switched bpm = 120
     initial begin
         bpm = 8'd120;             
@@ -32,20 +36,29 @@ module metronome(
     // bpm caps at 255 and at 1 no overflow allowed
     always @(posedge clk_fast) begin
         if (mode == 1'b1) begin   // Changes only allowed when in metronome mode
-            if (metronome_inc) begin
+            if (metronome_inc && !inc_b) begin
                 // Check for addition overflow
-                if ((8'd255 - bpm) < delta_bpm) begin
-                    bpm <= 8'd255; // Cap at max
+                if ((8'd255 - bpm) <= delta_bpm) begin
+                    bpm <= bpm - delta_bpm; // Cap at max (keep it a multiple of delta_bpm)
                 end else begin
                     bpm <= bpm + delta_bpm;
                 end
-            end else if (metronome_dec) begin
+                inc_b <= 1'b1;
+            end else if (metronome_dec && !dec_b) begin
                 // Check for subtraction overflow
-                if ((bpm - 8'd1) < delta_bpm) begin
-                    bpm <= 8'd1;   // Cap at min
+                if (bpm <= delta_bpm) begin
+                    bpm <= delta_bpm;   // Cap at min (keep it the lowest multiple of delta_bpm)
                 end else begin
                     bpm <= bpm - delta_bpm;
                 end
+                dec_b <= 1'b1;
+            end
+            
+            if (!metronome_inc) begin
+                inc_b <= 1'b0;
+            end
+            if (!metronome_dec) begin
+                dec_b <= 1'b0;
             end
         end
     end

@@ -13,7 +13,7 @@
  * Outputs: led[15:0]       current state of 16 user-controlled LEDs (0 = off, 1 = on)
  *          JC[3:0]         GPIO pins for PmodAMP2 output
  *          seg[6:0]        current state of the seven segments for the LED display
- *          an[3:0]         "on switch" for each of the three used digits (0 = on, 1 = off)
+ *          an[3:0]         "on switch" for each of the four used digits (0 = on, 1 = off)
  */
  module piano (
     input master_clk,
@@ -26,7 +26,7 @@
     output [15:0] led,
     output [3:0] JC,
     output [6:0] seg,
-    output [2:0] an
+    output [3:0] an
  );
 
     wire clk_fast; // 500 Hz clock for debouncing buttons/switches
@@ -41,6 +41,9 @@
 
     wire [4:0] vol;
     wire muted;
+    wire [3:0] delta_bpm = 4'd5; //TODO: make this come from a file
+    wire [7:0] bpm;
+    wire clk_metronome;
 
     clock_divider clk_div (
         .master_clk(master_clk),
@@ -87,5 +90,12 @@
         .led(led) //constraint file variable
     );
 
+    display display_manager (
+        .bpm(bpm),
+        .mode(mode),
+        .clk_fast(clk_fast),
+        .seg(seg),
+        .an(an)
+    );
 
  endmodule
