@@ -17,7 +17,7 @@
  */
  module piano (
     input master_clk,
-    input sw,
+    input [1:0] sw,
     input btnL,
     input btnR,
     input btnU,
@@ -33,6 +33,7 @@
     wire [15:0] btnKYPD;
 
     wire mode;
+    wire harmony;
     wire volume_dec;
     wire volume_inc;
     wire metronome_inc;
@@ -58,13 +59,15 @@
 
     clean_inputs ci (
         .clk_fast(clk_fast),
-        .sw0(sw),
+        .sw0(sw[0]),
+        .sw1(sw[1]),
         .btnL(btnL),
         .btnR(btnR),
         .btnU(btnU),
         .btnD(btnD),
         .btnKYPD(btnKYPD),
         .mode(mode),
+        .harmony(harmony),
         .volume_inc(volume_inc),
         .volume_dec(volume_dec),
         .metronome_inc(metronome_inc),
@@ -72,14 +75,6 @@
         .keypad(keypad)
     );
 
-//    pmodAMP2 amp (
-//         .i_clk(master_clk),
-//         .i_sw({btnL, btnR, btnU, btnD}),
-
-//         .o_audio(JC[0]),
-//         .o_gain(JC[1]),
-//         .o_shutdown_n(JC[2])
-//     );
 
     volume vol_logic (
         .clk(master_clk),
@@ -90,6 +85,16 @@
         .led(led) //constraint file variable
     );
 
+    metronome met (
+        .clk_fast(clk_fast),
+        .metronome_inc(metronome_inc),
+        .metronome_dec(metronome_dec),
+        .delta_bpm(delta_bpm),
+        .mode(mode),
+        .bpm(bpm),
+        .clk_metronome(clk_metronome)
+    );
+
     display display_manager (
         .bpm(bpm),
         .mode(mode),
@@ -97,5 +102,56 @@
         .seg(seg),
         .an(an)
     );
+
+    // ------------------------------------------------------------------------
+    // Configuration Frequencies (16 notes * 16-bits = 256 bits)
+    // You can adjust these integer values to match any musical scale you like.
+    // Standard Equal Temperament Tunings (e.g., C4 = 262, E4 = 330, A4 = 440)
+    // ------------------------------------------------------------------------
+    wire [255:0] target_frequencies = {
+        16'd523, // Button 15 (C5)
+        16'd494, // Button 14 (B4)
+        16'd440, // Button 13 (A4)
+        16'd392, // Button 12 (G4)
+        16'd349, // Button 11 (F4)
+        16'd330, // Button 10 (E4)
+        16'd294, // Button 9  (D4)
+        16'd262, // Button 8  (C4)
+        16'd247, // Button 7  (B3)
+        16'd220, // Button 6  (A3)
+        16'd196, // Button 5  (G3)
+        16'd175, // Button 4  (F3)
+        16'd165, // Button 3  (E3)
+        16'd147, // Button 2  (D3)
+        16'd131, // Button 1  (C3)
+        16'd110  // Button 0  (A2)
+    };
+
+    // ------------------------------------------------------------------------
+    // Instantiate Audio Engine & PmodAMP2 Driver
+    // ------------------------------------------------------------------------
+    wire pwm_audio_out;
+    wire amp_shutdown;
+
+    logic audio_engine (
+        .master_clk(master_clk),
+        .mode(mode),
+        .harmony(harmony),
+        .freq_packed(target_frequencies),
+        .keypad(keypad),
+        .clk_metronome(clk_metronome),
+        .volume(vol[3:0]), // Downsizing 5-bit volume wire to 4-bit module input
+        .muted(muted),
+        .ain(pwm_audio_out),
+        .shdn(amp_shutdown)
+    );
+
+    // ------------------------------------------------------------------------
+    // Map Output Pins to PmodAMP2 Pin Header JC
+    // ------------------------------------------------------------------------
+    assign JC[0] = pwm_audio_out; // JA1/JC1 pin -> AIN
+    assign JC[1] = 1'b1;          // JA2/JC2 pin -> GAIN (1'b1 = +6dB, 1'b0 = 0dB)
+    assign JC[2] = 1'b0;          // Unused NC pin
+    assign JC[3] = amp_shutdown;  // JA4/JC4 pin -> SHDN
 
  endmodule

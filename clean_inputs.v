@@ -21,17 +21,19 @@
 module clean_inputs(
     input clk_fast,
     input sw0,
+    input sw1,
     input btnL,
     input btnR,
     input btnU,
     input btnD,
     input [15:0] btnKYPD,
     output reg mode,
+    output reg harmony,
     output reg volume_dec,
     output reg volume_inc,
     output reg metronome_inc,
     output reg metronome_dec,
-    output reg keypad[15:0]
+    output reg [15:0] keypad
 );
 
     // Synchronizer flip-flops to bring asynchronous button inputs into the clk_fast domain
@@ -44,6 +46,7 @@ module clean_inputs(
     reg [3:0] shift_U   = 4'b0;
     reg [3:0] shift_D   = 4'b0;
     reg [3:0] shift_sw0 = 4'b0;
+    reg [3:0] shift_sw1 = 4'b0;
 
     // Debounced and stable button states
     reg db_L   = 1'b0;
@@ -51,6 +54,7 @@ module clean_inputs(
     reg db_U   = 1'b0;
     reg db_D   = 1'b0;
     reg db_sw0 = 1'b0;
+    reg db_sw1 = 1'b0;
 
     // everything but the keypad
     always @(posedge clk_fast) begin
@@ -64,6 +68,7 @@ module clean_inputs(
         shift_U   <= {shift_U[2:0],   sync1[2]};
         shift_D   <= {shift_D[2:0],   sync1[3]};
         shift_sw0 <= {shift_sw0[2:0], sync1[4]};
+        shift_sw1 <= {shift_sw1[2:0], sync1[5]};
 
         // If history is all 1s -> Button is firmly pressed. All 0s -> Released.
         if (shift_L == 4'b1111)   db_L <= 1'b1; else if (shift_L == 4'b0000)   db_L <= 1'b0;
@@ -71,6 +76,7 @@ module clean_inputs(
         if (shift_U == 4'b1111)   db_U <= 1'b1; else if (shift_U == 4'b0000)   db_U <= 1'b0;
         if (shift_D == 4'b1111)   db_D <= 1'b1; else if (shift_D == 4'b0000)   db_D <= 1'b0;
         if (shift_sw0 == 4'b1111) db_sw0 <= 1'b1; else if (shift_sw0 == 4'b0000) db_sw0 <= 1'b0;
+        if (shift_sw1 == 4'b1111) db_sw1 <= 1'b1; else if (shift_sw1 == 4'b0000) db_sw1 <= 1'b0;
     
         // Update outputs based on debounced button states
         volume_dec    <= db_L;
@@ -78,6 +84,7 @@ module clean_inputs(
         metronome_inc <= db_U;
         metronome_dec <= db_D;
         mode <= db_sw0;
+        harmony <= db_sw1;
     end
 
     // loop variable for the keypad
